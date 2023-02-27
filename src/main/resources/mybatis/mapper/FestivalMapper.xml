@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.servletjsp.mybatis.mapper.FestivalMapper">
+    <select id="findFestivalList" resultType="java.util.Map">
+        SELECT
+        CM.COT_ID, TITLE, CONTENT_STATUS, CONTENT_TYPE, CREATE_DATE, MAPX, MAPY
+        FROM CONTENT_MASTER CM
+        INNER JOIN DATABASE_MASTER DM
+        ON CM.COT_ID = DM.COT_ID
+        INNER JOIN FESTIVAL_INTRO FI
+        ON DM.COT_ID = FI.COT_ID
+        LIMIT 0, 10
+    </select>
+
+    <select id="findFestivalListBy" resultType="java.util.Map">
+        SELECT
+        CM.COT_ID, TITLE, CONTENT_STATUS, CONTENT_TYPE, CREATE_DATE, MAPX, MAPY
+        FROM CONTENT_MASTER CM
+        INNER JOIN DATABASE_MASTER DM
+        ON CM.COT_ID = DM.COT_ID
+        INNER JOIN FESTIVAL_INTRO FI
+        ON DM.COT_ID = FI.COT_ID
+        WHERE TRUE
+        AND CREATE_DATE > #{createDateFrom}
+        <if test="!contentStatusList.isEmpty()">
+            AND CONTENT_STATUS IN (
+                <foreach collection="contentStatusList" item="contentStatus" separator=",">
+                    #{contentStatus}
+                </foreach>
+            )
+        </if>
+        <if test="!areaCodeList.isEmpty()">
+            AND DM.AREA_CODE IN (
+                <foreach collection="areaCodeList" item="areaCode" separator=",">
+                    #{areaCode}
+                </foreach>
+            )
+        </if>
+
+        LIMIT 0, 10
+    </select>
+
+    <select id="findFestivalDtoList" resultType="com.example.servletjsp.mybatis.dto.Festival">
+        SELECT
+        CM.COT_ID, TITLE, CONTENT_STATUS, CONTENT_TYPE, CREATE_DATE, MAPX, MAPY
+        FROM CONTENT_MASTER CM
+        INNER JOIN DATABASE_MASTER DM
+        ON CM.COT_ID = DM.COT_ID
+        INNER JOIN FESTIVAL_INTRO FI
+        ON DM.COT_ID = FI.COT_ID
+        LIMIT 0, 10
+    </select>
+
+    <select id="findFestivalResultMapDtoList" resultMap="festivalMap">
+        SELECT
+        CM.COT_ID, TITLE, CONTENT_STATUS, CONTENT_TYPE, CREATE_DATE, MAPX, MAPY
+        FROM CONTENT_MASTER CM
+        INNER JOIN DATABASE_MASTER DM
+        ON CM.COT_ID = DM.COT_ID
+        INNER JOIN FESTIVAL_INTRO FI
+        ON DM.COT_ID = FI.COT_ID
+        LIMIT 0, 10
+    </select>
+
+    <resultMap id="festivalMap" type="com.example.servletjsp.mybatis.dto.Festival">
+        <id column="COT_ID" property="cotId" />
+        <result column="TITLE" property="title" />
+        <result column="CONTENT_STATUS" property="contentStatus" />
+        <result column="CONTENT_TYPE" property="contentType" />
+        <result column="CREATE_DATE" property="createDate" />
+        <result column="MAPX" property="mapx" />
+        <result column="MAPY" property="mapy" />
+    </resultMap>
+
+    <select id="findFestivalRelationList" resultMap="festivalWithDetailMap">
+        SELECT
+        CM.COT_ID, TITLE, CONTENT_STATUS, CONTENT_TYPE, CREATE_DATE, DI.COT_ID, DI.FLD_GUBUN, DI.DISPLAY_TITLE, DI.CONTENT_BODY, DI.SERIAL_NUM
+        FROM CONTENT_MASTER CM
+        INNER JOIN DETAIL_INFO DI
+        ON CM.COT_ID = DI.COT_ID
+    </select>
+
+    <resultMap id="festivalWithDetailMap" type="com.example.servletjsp.mybatis.dto.Festival">
+        <id column="COT_ID" property="cotId" />
+        <result column="TITLE" property="title" />
+        <result column="CONTENT_STATUS" property="contentStatus" />
+        <result column="CONTENT_TYPE" property="contentType" />
+        <result column="CREATE_DATE" property="createDate" />
+
+        <collection property="detailInfoList" resultMap="detailInfoMap" />
+    </resultMap>
+
+    <resultMap id="detailInfoMap" type="com.example.servletjsp.mybatis.dto.DetailInfo">
+        <id column="COT_ID" property="cotId" />
+        <result column="FLD_GUBUN" property="fieldGubun" />
+        <result column="DISPLAY_TITLE" property="displayTitle" />
+        <result column="CONTENT_BODY" property="contentBody" />
+        <result column="SERIAL_NUM" property="serialNum" />
+    </resultMap>
+
+    <select id="findFestivalInterfaceList" resultMap="festivalWithDetailMap">
+        SELECT
+        CM.COT_ID, TITLE, CONTENT_STATUS, CONTENT_TYPE, CREATE_DATE, DI.COT_ID, DI.FLD_GUBUN, DI.DISPLAY_TITLE, DI.CONTENT_BODY, DI.SERIAL_NUM
+        FROM (
+            SELECT _CM.*
+            FROM CONTENT_MASTER _CM
+            INNER JOIN DATABASE_MASTER _DM
+            ON _CM.COT_ID = _DM.COT_ID
+            WHERE TRUE
+            AND _DM.AREA_CODE IN (
+            <foreach collection="areaCodeList" item="areaCode" separator=",">
+                #{areaCode}
+            </foreach>
+            )
+            LIMIT 0, 10
+        ) CM
+        INNER JOIN DETAIL_INFO DI
+        ON CM.COT_ID = DI.COT_ID
+    </select>
+</mapper>
